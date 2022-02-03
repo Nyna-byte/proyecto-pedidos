@@ -178,12 +178,24 @@ function insertarDetallesProductos($orderNumber,$arrayPrecios, $con){
 				)";		
 				if ($con->exec($sql)) {
 					$contador++;
-				}	
+				}
+				actualizarCantidadProducto($con,$code,$cantidad);
 			} catch(PDOException $e) {
 				echo $sql . "<br>" . $e->getMessage() . "<br>";
 			}
 		}
 		echo "Detalles de pedido insertados con exito<br>";
+	}
+}
+
+function actualizarCantidadProducto($con,$productCode,$cantidad){
+	try{
+		$sql = "UPDATE products set quantityInStock=(quantityInStock - $cantidad) where productCode = '$productCode'";
+		if ($con->exec($sql)) {
+			echo "Stock actualizado con exito<br>";
+		}	
+	} catch(PDOException $e) {
+		echo $sql . "<br>" . $e->getMessage() ."<br>";
 	}
 }
 
@@ -219,10 +231,6 @@ function productoPrecio($conn) {
 						$nombreProducto=$resultado[0]['productName'];
 
 						$arrayProductos[$codigoProducto]=array($nombreProducto,$total);
-
-
-
-
 				}catch(PDOException $e){
 						echo "No se ha ejecutado el select<br>",$e->getMessage();
 
@@ -405,6 +413,45 @@ function consultarRelacionPagos($CustomerNumber,$fechaIni,$fechaFin, $conn)
 
 		return [];
     }
+}
+
+function mostrarPagos($fechaIni,$fechaFin){
+	//Abro la abrirConexion
+	$conn=abrirConexion();
+	//Consulto BBDD quiero que me devuelva el nombre del cliente
+	$login = unserialize($_COOKIE['login']);
+	foreach ($login as $customer) {
+		$CustomerNumber = $customer;
+	}
+	$ArrayPagos=consultarRelacionPagos($CustomerNumber,$fechaIni,$fechaFin, $conn);
+
+	if(count($ArrayPagos) > 0){
+		$totalAmount = 0;
+
+		echo '<table border="1">
+				<tr>
+					<th>No Orden</th>
+					<th>Fecha de pago</th>
+					<th>Monto</th>
+				</tr>';
+
+		foreach($ArrayPagos as $pago) {
+			echo '<tr>
+					<td>'.$pago['checkNumber'].'</td>
+					<td>'.$pago['paymentDate'].'</td>
+					<td>'.$pago['amount'].'</td>
+				</tr>';
+			$totalAmount += $pago['amount'];
+		}
+		echo '<tr>
+					<td colspan="2" align="center"> TOTAL</td>
+					<td>'.$totalAmount.'</td>
+				</tr>
+			</table>';
+	}else{
+		echo "No se han realizado pagos";
+	}
+	$conn = null;
 }
 
 function checkLogin() {

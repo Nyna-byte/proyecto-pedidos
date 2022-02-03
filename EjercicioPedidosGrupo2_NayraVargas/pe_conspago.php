@@ -28,7 +28,7 @@ foreach ($usuario as $nombre=>$customerNumber) {
 
 	<?php
 	//Cuando el usuario le de a enviar al hacer la llamada a si mismo viene aquí
-	if(formularioEnviado()){
+	if($_SERVER["REQUEST_METHOD"] == "POST"){
 		//Recojo variables formulario
 		$fechaIni=$_POST['fechaIni'];
 		$fechaFin=$_POST['fechaFin'];
@@ -37,43 +37,8 @@ foreach ($usuario as $nombre=>$customerNumber) {
 		$fechaIni=limpiar($fechaIni);
 		$fechaFin=limpiar($fechaFin);
 
-		if($fechaIni < $fechaFin){
-			//Abro la abrirConexion
-			$conn=abrirConexion();
-			//Consulto BBDD quiero que me devuelva el nombre del cliente
-			$login = unserialize($_COOKIE['login']);
-			foreach ($login as $customer) {
-				$CustomerNumber = $customer;
-			}
-			$ArrayPagos=consultarRelacionPagos($CustomerNumber,$fechaIni,$fechaFin, $conn);
-
-			if(count($ArrayPagos) > 0){
-				$totalAmount = 0;
-
-				echo '<table border="1">
-					<tr>
-						<th>No Orden</th>
-						<th>Fecha de pago</th>
-						<th>Monto</th>
-					</tr>';
-
-				foreach($ArrayPagos as $pago) {
-					echo '<tr>
-						<td>'.$pago['checkNumber'].'</td>
-						<td>'.$pago['paymentDate'].'</td>
-						<td>'.$pago['amount'].'</td>
-					</tr>';
-					$totalAmount += $pago['amount'];
-				}
-				echo '<tr>
-						<td colspan="2" align="center"> TOTAL</td>
-						<td>'.$totalAmount.'</td>
-					</tr>
-				</table>';
-			}else{
-				echo "No se han realizado pagos";
-			}
-			$conn = null;
+		if($fechaIni < $fechaFin || !formularioEnviado()){
+			mostrarPagos($fechaIni,$fechaFin);
 		}else{
 			echo "La fecha de fin es menor que la fecha de inicio";
 		}

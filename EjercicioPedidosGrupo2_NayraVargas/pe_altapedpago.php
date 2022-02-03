@@ -16,6 +16,7 @@
 			insertarDetallesProductos($orderNumber, $arrayPrecios, $conn);
 			$amount = calcularPagoTotal($arrayPrecios);
 			addPayment($customerNumber, $checkNumber, $amount, $conn);
+			borrarCesta();
 		} else {
 			echo "CheckNumber error<br>";
 		}
